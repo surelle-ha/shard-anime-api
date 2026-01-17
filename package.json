@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "peerDependencies": {
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.3"
   },
   "lint-staged": {
     "*.{js,ts}": [
@@ -23,13 +23,13 @@
   "dependencies": {
     "@hono/swagger-ui": "^0.5.3",
     "@hono/zod-openapi": "^1.2.0",
-    "@scalar/hono-api-reference": "^0.9.30",
-    "@upstash/redis": "^1.35.8",
+    "@scalar/hono-api-reference": "^0.9.34",
+    "@upstash/redis": "^1.36.1",
     "cheerio": "^1.1.2",
     "crypto-js": "^4.2.0",
-    "hono": "^4.11.1",
+    "hono": "^4.11.4",
     "hono-rate-limiter": "^0.4.2",
-    "zod": "^4.2.1"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
@@ -37,10 +37,10 @@
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-prettier": "^5.5.5",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.7.4"
+    "prettier": "^3.8.0"
   }
 }
