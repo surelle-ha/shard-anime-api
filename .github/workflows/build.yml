@@ -20,15 +20,21 @@ jobs:
           echo "latest_commit=$latestCommit" >> $env:GITHUB_OUTPUT
           
           # Check if we've built this commit before
-          $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases"
-          $builtCommit = $releases | Where-Object { $_.body -match $latestCommit } | Select-Object -First 1
-          
-          if ($builtCommit) {
-            echo "already_built=true" >> $env:GITHUB_OUTPUT
-            echo "This commit has already been built"
-          } else {
+          try {
+            $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases" -ErrorAction Stop
+            $builtCommit = $releases | Where-Object { $_.body -match $latestCommit } | Select-Object -First 1
+            
+            if ($builtCommit) {
+              echo "already_built=true" >> $env:GITHUB_OUTPUT
+              echo "This commit has already been built"
+            } else {
+              echo "already_built=false" >> $env:GITHUB_OUTPUT
+              echo "New commit detected: $latestCommit"
+            }
+          } catch {
+            # If no releases exist yet, that's fine - we should build
             echo "already_built=false" >> $env:GITHUB_OUTPUT
-            echo "New commit detected: $latestCommit"
+            echo "No previous releases found or error checking releases. Will build."
           }
 
       - name: Checkout hianime-API repository
