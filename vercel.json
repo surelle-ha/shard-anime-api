@@ -1,7 +1,0 @@
-{
-    "functions": {
-        "api/vercel.js": {
-            "runtime": "bun@1.3.6"
-        }
-    }
-}

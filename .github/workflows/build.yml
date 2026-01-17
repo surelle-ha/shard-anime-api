@@ -1,0 +1,95 @@
+name: Build and Release Shard Anime EXE
+
+on:
+  # Manual trigger option
+  workflow_dispatch:
+  
+  # Schedule to check for updates every 6 hours
+  schedule:
+    - cron: '0 */6 * * *'
+
+jobs:
+  check-and-build:
+    runs-on: windows-latest
+    
+    steps:
+      - name: Check latest commit from hianime-API
+        id: check_commit
+        run: |
+          $latestCommit = (Invoke-RestMethod -Uri "https://api.github.com/repos/yahyaMomin/hianime-API/commits/main").sha
+          echo "latest_commit=$latestCommit" >> $env:GITHUB_OUTPUT
+          
+          # Check if we've built this commit before
+          $releases = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases"
+          $builtCommit = $releases | Where-Object { $_.body -match $latestCommit } | Select-Object -First 1
+          
+          if ($builtCommit) {
+            echo "already_built=true" >> $env:GITHUB_OUTPUT
+            echo "This commit has already been built"
+          } else {
+            echo "already_built=false" >> $env:GITHUB_OUTPUT
+            echo "New commit detected: $latestCommit"
+          }
+
+      - name: Checkout hianime-API repository
+        if: steps.check_commit.outputs.already_built == 'false'
+        uses: actions/checkout@v4
+        with:
+          repository: yahyaMomin/hianime-API
+          ref: main
+          path: hianime-api
+
+      - name: Setup Bun
+        if: steps.check_commit.outputs.already_built == 'false'
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        if: steps.check_commit.outputs.already_built == 'false'
+        working-directory: ./hianime-api
+        run: bun install
+
+      - name: Build executable
+        if: steps.check_commit.outputs.already_built == 'false'
+        working-directory: ./hianime-api
+        run: bun build index.js --compile --target=bun-windows-x64 --outfile=shard-anime.exe
+
+      - name: Get commit info
+        if: steps.check_commit.outputs.already_built == 'false'
+        id: commit_info
+        run: |
+          $commitData = Invoke-RestMethod -Uri "https://api.github.com/repos/yahyaMomin/hianime-API/commits/${{ steps.check_commit.outputs.latest_commit }}"
+          $commitMessage = $commitData.commit.message
+          $commitDate = $commitData.commit.author.date
+          echo "commit_message=$commitMessage" >> $env:GITHUB_OUTPUT
+          echo "commit_date=$commitDate" >> $env:GITHUB_OUTPUT
+
+      - name: Create Release
+        if: steps.check_commit.outputs.already_built == 'false'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }}-${{ steps.check_commit.outputs.latest_commit }}
+          name: Shard Anime v${{ github.run_number }}
+          body: |
+            ## Auto-built from hianime-API
+            
+            **Source Commit:** ${{ steps.check_commit.outputs.latest_commit }}
+            **Commit Message:** ${{ steps.commit_info.outputs.commit_message }}
+            **Build Date:** ${{ steps.commit_info.outputs.commit_date }}
+            
+            ### Changes
+            This release was automatically built from the latest commit in [yahyaMomin/hianime-API](https://github.com/yahyaMomin/hianime-API).
+            
+            ### Download
+            Download `shard-anime.exe` below to run the application.
+          files: |
+            ./hianime-api/shard-anime.exe
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: No new changes
+        if: steps.check_commit.outputs.already_built == 'true'
+        run: echo "No new commits to build. Skipping release."
