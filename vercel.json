@@ -1,6 +1,6 @@
 {
     "functions": {
-        "api/index.ts": {
+        "index.js": {
             "runtime": "bun@1.3.6"
         }
     }
