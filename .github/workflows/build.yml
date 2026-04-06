@@ -5,8 +5,8 @@ on:
   workflow_dispatch:
   
   # Schedule to check for updates every 6 hours
-  schedule:
-    - cron: '0 */6 * * *'
+  # schedule:
+  #   - cron: '0 */6 * * *'
 
 permissions:
   contents: write
